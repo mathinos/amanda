@@ -1,173 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Skiathos Open Cinema!!</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cinema Reservation</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-    header, footer { background: #111; color: #fff; padding: 1rem; text-align: center; }
-    nav a { color: #fff; margin: 0 1rem; text-decoration: none; }
-    section { padding: 2rem; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
     .event {
-      border-bottom: 1px solid #ccc;
-      padding: 1rem 0;
-      font-size: 1.1rem;
-    }
-    .event h3 {
-      margin: 0.5rem 0;
-    }
-    .event p {
-      margin: 0.25rem 0;
-    }
-    .event strong {
-      display: inline-block;
-      min-width: 120px;
-    }
-    .event .formatted {
-      font-weight: bold;
-      font-size: 1.2rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .reserve-button {
-      margin-top: 1rem;
-      display: inline-block;
-      background: #007BFF;
-      color: white;
-      padding: 0.5rem 1rem;
-      text-decoration: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .reserve-button:hover {
-      background: #0056b3;
-    }
-    #popup-form {
-      display: none;
-      position: fixed;
-      top: 5%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #fff;
-      padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-      z-index: 1000;
-      max-width: 95vw;
-      width: 100%;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-    #popup-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 999;
-    }
-    .close-popup {
-      float: right;
-      cursor: pointer;
-      color: red;
-      font-size: 1.5rem;
-    }
-    label { display: block; margin: 1rem 0 0.5rem; }
-    input, select {
-      width: 100%;
-      padding: 0.5rem;
-      margin-bottom: 1rem;
-      box-sizing: border-box;
-      font-size: 1rem;
-    }
-    button[type="submit"] {
-      background: #007BFF;
+      margin-top: 10px;
+      padding: 8px 16px;
+      background-color: #4CAF50;
       color: white;
       border: none;
-      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
       cursor: pointer;
-      width: 100%;
-      font-size: 1rem;
     }
-    @media screen and (max-width: 600px) {
-      section { padding: 1rem; }
-      .event { font-size: 1rem; }
-      .reserve-button { width: 100%; text-align: center; }
+    .reserve-button:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Your Cinema Name</h1>
-    <nav>
-      <a href="#home">Home</a>
-      <a href="#shows">Upcoming Shows</a>
-    </nav>
-  </header>
+  <h1>Upcoming Screenings</h1>
+  <div id="event-list">Loading events...</div>
 
-  <section id="home">
-    <h2>Welcome to Skiathos Open Cinema!!</h2>
-    <p>We operate on selected days of the week with limited seats available. You can reserve your ticket online, but please remember: you must collect your actual ticket at the desk at least <strong>1.5 hours before the show</strong>, or your reservation will be cancelled.</p>
-  </section>
-
-  <section id="shows">
-    <h2>Upcoming Shows</h2>
-    <div id="event-list">Loading events...</div>
-  </section>
-
-  <div id="popup-overlay"></div>
-  <div id="popup-form">
-    <span class="close-popup" onclick="closePopup()">&times;</span>
-    <h2>Reserve Your Seat</h2>
-    <form id="reservationForm">
-      <label for="movieTitle">Movie</label>
-      <input type="text" id="movieTitle" name="movieTitle" readonly />
-      <label for="date">Date</label>
-      <input type="text" id="date" name="date" readonly />
-      <label for="time">Time</label>
-      <input type="text" id="time" name="time" readonly />
-      <label for="tickets">Number of Tickets</label>
-      <select id="tickets" name="tickets">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-      </select>
-      <label for="name">Name</label>
-      <input type="text" id="name" name="name" required />
-      <label for="surname">Surname</label>
-      <input type="text" id="surname" name="surname" required />
-      <label for="phone">Phone Number</label>
-      <input type="tel" id="phone" name="phone" required />
-      <label for="email">Email</label>
-      <input type="email" id="email" name="email" required />
-      <button type="submit">Submit Reservation</button>
-    </form>
-  </div>
-
-  <footer>
-    <p>&copy; 2025 Your Cinema Name. All rights reserved.</p>
-  </footer>
-
-<script>
-    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCA4sz-eVQrNz2g2GSMlXM53Yva6UbT23qSrM-CwCZuFKDOXCvn2v86dwXLnOC_KNEKs3qqhc_JdhA/pub?output=csv&cachebuster=";
-    const googleFormBaseURL = "https://docs.google.com/forms/d/e/1FAIpQLScz42RoQl100mKUj62aiKGV-z0uBUK5G9dSjORZWpkfI9X2Gg/viewform";
-
-    function generatePrefilledFormURL(title, date, time, maxSeats) {
-      const selectedTickets = prompt(`How many tickets would you like to reserve? (Available: ${maxSeats})`, "1");
-      const tickets = parseInt(selectedTickets);
-      if (isNaN(tickets) || tickets < 1 || tickets > maxSeats) {
-        alert("Invalid number of tickets selected.");
-        return null;
-      }
-
-      const params = new URLSearchParams();
-      params.set("entry.338316823", title);  // Movie Title
-      params.set("entry.1022659428", date);  // Date
-      params.set("entry.1956840961", time);  // Time
-      params.set("entry.358134576", tickets);  // Number of Tickets
-      return `${googleFormBaseURL}?${params.toString()}`;
-    }
+  <script>
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCA4sz-eVQrNz2g2GSMlXM53Yva6UbT23qSrM-CwCZuFKDOXCvn2v86dwXLnOC_KNEKs3qqhc_JdhA/pub?output=csv";
 
     function isFutureDate(dateStr, timeStr) {
       const fullDateTime = `${dateStr.trim()} ${timeStr.trim()}`;
@@ -185,28 +54,19 @@
 
       rows.forEach(row => {
         const columns = row.split(",");
-        if (columns.length >= 3) {
-          const [date, time, title, seats, notes] = columns;
+        if (columns.length >= 4) {
+          const [date, time, title, seats] = columns;
           const availableSeats = parseInt(seats);
-
           if (!isNaN(availableSeats) && isFutureDate(date, time)) {
             const eventEl = document.createElement("div");
             eventEl.className = "event";
 
-            const formattedLine = `🎬 ${date.trim()} - ${time.trim()}`;
-
             eventEl.innerHTML = `
-              <p class="formatted">${formattedLine}</p>
-              <p><strong>Movie:</strong> ${title}</p>
-              <p><strong>Available Seats:</strong> ${availableSeats}</p>
-              ${notes ? `<p><strong>Notes:</strong> ${notes.trim()}</p>` : ""}
-              <button class="reserve-button">Reserve Now</button>
+              <p><strong>Date:</strong> ${date.trim()} ${time.trim()}</p>
+              <p><strong>Movie:</strong> ${title.trim()}</p>
+              <p><strong>Available Seats:</strong> <span id="seats-${date.trim()}-${time.trim()}">${availableSeats}</span></p>
+              <button class="reserve-button" onclick="openReservationForm('${title.trim()}', '${date.trim()}', '${time.trim()}', ${availableSeats})">Reserve Now</button>
             `;
-
-            eventEl.querySelector(".reserve-button").addEventListener("click", () => {
-              const formURL = generatePrefilledFormURL(title.trim(), date.trim(), time.trim(), availableSeats);
-              if (formURL) window.open(formURL, "_blank");
-            });
 
             eventList.appendChild(eventEl);
           }
@@ -214,9 +74,40 @@
       });
     }
 
+    function openReservationForm(title, date, time, maxSeats) {
+      const name = prompt("Your Name:");
+      const surname = prompt("Your Surname:");
+      const phone = prompt("Phone:");
+      const email = prompt("Email:");
+      const requested = parseInt(prompt(`How many tickets? (Max: ${maxSeats})`));
+      if (requested > maxSeats) {
+        alert("Not enough seats available.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("date", date);
+      formData.append("time", time);
+      formData.append("name", name);
+      formData.append("surname", surname);
+      formData.append("phone", phone);
+      formData.append("email", email);
+      formData.append("tickets", requested);
+
+      fetch("https://script.google.com/macros/s/AKfycbxniEVAhktwcPx7iIAZIAIXaoPDYnEGZPFHdiMrji53-d5ulM_JsWC6uyKLPsvH4Y8l/exec", {
+        method: "POST",
+        body: formData
+      })
+      .then(response => response.text())
+      .then(result => {
+        alert(result);
+        fetchEvents(); // reload seats
+      })
+      .catch(err => alert("Reservation failed."));
+    }
+
     fetchEvents();
-</script>
-
-
+  </script>
 </body>
 </html>
