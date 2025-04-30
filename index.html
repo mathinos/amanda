@@ -37,6 +37,7 @@
 
   <script>
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCA4sz-eVQrNz2g2GSMlXM53Yva6UbT23qSrM-CwCZuFKDOXCvn2v86dwXLnOC_KNEKs3qqhc_JdhA/pub?output=csv";
+    const scriptWebAppUrl = "YOUR_DEPLOYED_APPS_SCRIPT_URL_HERE";
 
     function isFutureDate(dateStr, timeStr) {
       const fullDateTime = `${dateStr.trim()} ${timeStr.trim()}`;
@@ -54,19 +55,66 @@
 
       rows.forEach(row => {
         const columns = row.split(",");
-        if (columns.length >= 4) {
-          const [date, time, title, seats] = columns;
+        if (columns.length >= 3) {
+          const [date, time, title, seats, notes] = columns;
           const availableSeats = parseInt(seats);
+
           if (!isNaN(availableSeats) && isFutureDate(date, time)) {
             const eventEl = document.createElement("div");
             eventEl.className = "event";
 
+            const formattedLine = `🎬 ${date.trim()} - ${time.trim()}`;
+
             eventEl.innerHTML = `
-              <p><strong>Date:</strong> ${date.trim()} ${time.trim()}</p>
-              <p><strong>Movie:</strong> ${title.trim()}</p>
-              <p><strong>Available Seats:</strong> <span id="seats-${date.trim()}-${time.trim()}">${availableSeats}</span></p>
-              <button class="reserve-button" onclick="openReservationForm('${title.trim()}', '${date.trim()}', '${time.trim()}', ${availableSeats})">Reserve Now</button>
+              <p class="formatted">${formattedLine}</p>
+              <p><strong>Movie:</strong> ${title}</p>
+              <p><strong>Available Seats:</strong> ${availableSeats}</p>
+              ${notes ? `<p><strong>Notes:</strong> ${notes.trim()}</p>` : ""}
+              <button class="reserve-button">Reserve Now</button>
             `;
+
+            eventEl.querySelector(".reserve-button").addEventListener("click", () => {
+              const tickets = prompt(`How many tickets would you like to reserve? (Available: ${availableSeats})`, "1");
+              const ticketsInt = parseInt(tickets);
+              if (isNaN(ticketsInt) || ticketsInt < 1 || ticketsInt > availableSeats) {
+                alert("Invalid number of tickets selected.");
+                return;
+              }
+
+              const name = prompt("Enter your name:");
+              const surname = prompt("Enter your surname:");
+              const phone = prompt("Enter your phone number:");
+              const email = prompt("Enter your email:");
+
+              const reservationData = {
+                date: date.trim(),
+                time: time.trim(),
+                title: title.trim(),
+                tickets: ticketsInt,
+                name: name.trim(),
+                surname: surname.trim(),
+                phone: phone.trim(),
+                email: email.trim(),
+              };
+
+              fetch(scriptWebAppUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(reservationData)
+              })
+              .then(res => res.json())
+              .then(result => {
+                if (result.success) {
+                  alert("Reservation successful!");
+                  fetchEvents(); // Refresh events list
+                } else {
+                  alert("Reservation failed: " + result.message);
+                }
+              })
+              .catch(err => {
+                alert("Error submitting reservation: " + err);
+              });
+            });
 
             eventList.appendChild(eventEl);
           }
@@ -74,40 +122,10 @@
       });
     }
 
-    function openReservationForm(title, date, time, maxSeats) {
-      const name = prompt("Your Name:");
-      const surname = prompt("Your Surname:");
-      const phone = prompt("Phone:");
-      const email = prompt("Email:");
-      const requested = parseInt(prompt(`How many tickets? (Max: ${maxSeats})`));
-      if (requested > maxSeats) {
-        alert("Not enough seats available.");
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append("title", title);
-      formData.append("date", date);
-      formData.append("time", time);
-      formData.append("name", name);
-      formData.append("surname", surname);
-      formData.append("phone", phone);
-      formData.append("email", email);
-      formData.append("tickets", requested);
-
-      fetch("https://script.google.com/macros/s/AKfycbxniEVAhktwcPx7iIAZIAIXaoPDYnEGZPFHdiMrji53-d5ulM_JsWC6uyKLPsvH4Y8l/exec", {
-        method: "POST",
-        body: formData
-      })
-      .then(response => response.text())
-      .then(result => {
-        alert(result);
-        fetchEvents(); // reload seats
-      })
-      .catch(err => alert("Reservation failed."));
-    }
-
     fetchEvents();
-  </script>
+</script>
+
+<div id="event-list"></div>
+
 </body>
 </html>
