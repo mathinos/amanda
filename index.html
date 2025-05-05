@@ -1,179 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cinema Reservations</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0; padding: 0;
-      background-color: #f9f9f9;
-    }
-    .container {
-      max-width: 800px;
-      margin: auto;
-      padding: 20px;
-    }
-    .event {
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-      padding: 15px;
-    }
-    .event p {
-      margin: 5px 0;
-    }
-    .reserve-button {
-      padding: 8px 15px;
-      background-color: #d84315;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    .reserve-button:disabled {
-      background-color: gray;
-      cursor: not-allowed;
-    }
-    .modal {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    .modal-content {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 400px;
-    }
-    .modal input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-    .modal h3 {
-      margin-top: 0;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinema Reservation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .event {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .event button {
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .event button:hover {
+            background-color: #218838;
+        }
+        .formatted {
+            font-weight: bold;
+            font-size: 18px;
+            color: #333;
+        }
+        .reservation-form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 300px;
+            margin: 0 auto;
+        }
+        .reservation-form input {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .reservation-form button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .reservation-form button:hover {
+            background-color: #0056b3;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🎬 Cinema Reservations</h1>
-    <div id="event-list">Loading events...</div>
-  </div>
 
-  <div class="modal" id="reservation-modal">
-    <div class="modal-content">
-      <h3 id="modal-movie"></h3>
-      <form id="reservation-form">
-        <input type="hidden" name="movie">
-        <input type="hidden" name="date">
-        <input type="hidden" name="time">
-        <input type="number" name="tickets" placeholder="Number of tickets" min="1" required>
-        <input type="text" name="name" placeholder="Name" required>
-        <input type="text" name="surname" placeholder="Surname" required>
-        <input type="tel" name="phone" placeholder="Phone" required>
-        <input type="email" name="email" placeholder="Email" required>
-        <button type="submit" class="reserve-button">Submit Reservation</button>
-      </form>
+    <div class="container">
+        <h1>Cinema Reservations</h1>
+        <div id="event-list"></div>
+
+        <!-- Reservation Form -->
+        <div id="reservation-form" class="reservation-form hidden">
+            <h3>Reservation Form</h3>
+            <input type="text" id="name" placeholder="Name" required />
+            <input type="text" id="surname" placeholder="Surname" required />
+            <input type="text" id="phone" placeholder="Phone Number" required />
+            <input type="email" id="email" placeholder="Email" required />
+            <input type="number" id="tickets" placeholder="Number of Tickets" required min="1" />
+            <button id="submit-reservation">Submit Reservation</button>
+        </div>
     </div>
-  </div>
 
-  <script>
-    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCA4sz-eVQrNz2g2GSMlXM53Yva6UbT23qSrM-CwCZuFKDOXCvn2v86dwXLnOC_KNEKs3qqhc_JdhA/pub?output=csv";
-    const scriptEndpoint = "https://script.google.com/macros/s/AKfycbxniEVAhktwcPx7iIAZIAIXaoPDYnEGZPFHdiMrji53-d5ulM_JsWC6uyKLPsvH4Y8l/exec";
+    <script>
+        const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCA4sz-eVQrNz2g2GSMlXM53Yva6UbT23qSrM-CwCZuFKDOXCvn2v86dwXLnOC_KNEKs3qqhc_JdhA/pub?output=csv";
+        const googleFormBaseURL = "https://docs.google.com/forms/d/e/1FAIpQLScz42RoQl100mKUj62aiKGV-z0uBUK5G9dSjORZWpkfI9X2Gg/viewform";
 
-    const modal = document.getElementById("reservation-modal");
-    const form = document.getElementById("reservation-form");
-    const modalMovie = document.getElementById("modal-movie");
+        function generatePrefilledFormURL(title, date, time, maxSeats) {
+            const selectedTickets = prompt(`How many tickets would you like to reserve? (Available: ${maxSeats})`, "1");
+            const tickets = parseInt(selectedTickets);
+            if (isNaN(tickets) || tickets < 1 || tickets > maxSeats) {
+                alert("Invalid number of tickets selected.");
+                return null;
+            }
 
-    let currentEvent = null;
+            const params = new URLSearchParams();
+            params.set("entry.338316823", title);  // Movie Title
+            params.set("entry.1022659428", date);  // Date
+            params.set("entry.1956840961", time);  // Time
+            params.set("entry.358134576", tickets);  // Number of Tickets
+            return `${googleFormBaseURL}?${params.toString()}`;
+        }
 
-    function isFuture(dateStr, timeStr) {
-      const dt = new Date(`${dateStr} ${timeStr}`);
-      return dt > new Date();
-    }
+        function isFutureDate(dateStr, timeStr) {
+            const fullDateTime = `${dateStr.trim()} ${timeStr.trim()}`;
+            const showDate = new Date(fullDateTime);
+            return !isNaN(showDate.getTime()) && showDate > new Date();
+        }
 
-    async function fetchEvents() {
-      const response = await fetch(csvUrl);
-      const data = await response.text();
-      const rows = data.trim().split("\n").slice(1);
+        async function fetchEvents() {
+            const response = await fetch(csvUrl);
+            const data = await response.text();
+            const rows = data.split("\n").slice(1);
 
-      const eventList = document.getElementById("event-list");
-      eventList.innerHTML = "";
+            const eventList = document.getElementById("event-list");
+            eventList.innerHTML = "";
 
-      rows.forEach(row => {
-        const [date, time, title, seats, notes] = row.split(",");
-        const available = parseInt(seats);
-        if (isNaN(available) || !isFuture(date, time)) return;
+            rows.forEach(row => {
+                const columns = row.split(",");
+                if (columns.length >= 3) {
+                    const [date, time, title, seats, notes] = columns;
+                    const availableSeats = parseInt(seats);
 
-        const container = document.createElement("div");
-        container.className = "event";
+                    if (!isNaN(availableSeats) && isFutureDate(date, time)) {
+                        const eventEl = document.createElement("div");
+                        eventEl.className = "event";
 
-        container.innerHTML = `
-          <p><strong>🎬 ${date} - ${time}</strong></p>
-          <p><strong>Movie:</strong> ${title}</p>
-          <p><strong>Available Seats:</strong> ${available}</p>
-          ${notes ? `<p><strong>Notes:</strong> ${notes.trim()}</p>` : ""}
-          <button class="reserve-button" ${available <= 0 ? "disabled" : ""}>${available <= 0 ? "Fully Booked" : "Reserve Now"}</button>
-        `;
+                        const formattedLine = `🎬 ${date.trim()} - ${time.trim()}`;
 
-        const btn = container.querySelector(".reserve-button");
-        btn.addEventListener("click", () => {
-          currentEvent = { title, date, time, available };
-          modalMovie.textContent = `${title} – ${date} ${time}`;
-          form.movie.value = title;
-          form.date.value = date;
-          form.time.value = time;
-          form.tickets.max = available;
-          modal.style.display = "flex";
-        });
+                        eventEl.innerHTML = `
+                            <p class="formatted">${formattedLine}</p>
+                            <p><strong>Movie:</strong> ${title}</p>
+                            <p><strong>Available Seats:</strong> ${availableSeats}</p>
+                            ${notes ? `<p><strong>Notes:</strong> ${notes.trim()}</p>` : ""}
+                            <button class="reserve-button">Reserve Now</button>
+                        `;
 
-        eventList.appendChild(container);
-      });
-    }
+                        eventEl.querySelector(".reserve-button").addEventListener("click", () => {
+                            showReservationForm(title.trim(), date.trim(), time.trim(), availableSeats);
+                        });
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const formData = new FormData(form);
-      const ticketsRequested = parseInt(formData.get("tickets"));
+                        eventList.appendChild(eventEl);
+                    }
+                }
+            });
+        }
 
-      if (ticketsRequested > currentEvent.available) {
-        alert(`Only ${currentEvent.available} seats available.`);
-        return;
-      }
+        function showReservationForm(title, date, time, availableSeats) {
+            const form = document.getElementById("reservation-form");
+            form.classList.remove("hidden");
 
-      const response = await fetch(scriptEndpoint, {
-        method: "POST",
-        body: formData,
-      });
+            document.getElementById("submit-reservation").onclick = () => {
+                const name = document.getElementById("name").value;
+                const surname = document.getElementById("surname").value;
+                const phone = document.getElementById("phone").value;
+                const email = document.getElementById("email").value;
+                const tickets = parseInt(document.getElementById("tickets").value);
 
-      if (response.ok) {
-        alert("Reservation submitted!");
-        modal.style.display = "none";
-        form.reset();
-        fetchEvents(); // Refresh events
-      } else {
-        alert("Error submitting reservation.");
-      }
-    });
+                if (tickets <= availableSeats) {
+                    submitReservation({ name, surname, phone, email, tickets, title, date, time });
+                } else {
+                    alert("Not enough available seats.");
+                }
+            };
+        }
 
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        modal.style.display = "none";
-      }
-    });
+        async function submitReservation(reservationData) {
+            const response = await fetch("YOUR_GOOGLE_APPS_SCRIPT_URL", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(reservationData)
+            });
 
-    fetchEvents();
-  </script>
+            const result = await response.json();
+            if (result.success) {
+                alert("Reservation submitted successfully!");
+            } else {
+                alert("Error submitting reservation.");
+            }
+        }
+
+        fetchEvents();
+    </script>
 </body>
 </html>
