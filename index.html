@@ -17,23 +17,21 @@
   <div id="event-list">Loading events...</div>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbxNvBYoXF8rsq0Wfod4uyj2VKxzsXvD0QdGv2Ky0wyn6dIvuFTlWOiz13ykYfHMtIGK/exec";
-    
+    const scriptURL = "https://script.google.com/macros/s/AKfycbxNvBYoXF8rsq0Wfod4uyj2VKxzsXvD0QdGv2Ky0wyn6dIvuFTlWOiz13ykYfHMtIGK/execc";
 
     async function fetchEvents() {
-      const response = await fetch(scriptURL);
+      try {
+        const response = await fetch(`${scriptURL}?action=schedule`);
+        const events = await response.json();
 
-      const events = await response.json();
+        const now = new Date();
+        const eventList = document.getElementById("event-list");
+        eventList.innerHTML = "";
 
-      const now = new Date();
-      const eventList = document.getElementById("event-list");
-      eventList.innerHTML = "";
+        events.forEach(event => {
+          const { date, time, title, seats, notes } = event;
+          const showDate = new Date(`${date} ${time}`);
 
-      events.forEach(event => {
-        const { date, time, title, seats, notes } = event;
-        const showDate = new Date(`${date} ${time}`);
-
-        if (showDate > now && seats > 0) {
           const eventEl = document.createElement("div");
           eventEl.className = "event";
 
@@ -42,12 +40,17 @@
             <p><strong>Title:</strong> ${title}</p>
             <p><strong>Available Seats:</strong> ${seats}</p>
             ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ""}
-            <button onclick="bookTickets('${date}', '${time}', '${title}', ${seats})">Reserve Now</button>
+            <button ${seats === 0 ? "disabled" : ""} onclick="bookTickets('${date}', '${time}', '${title}', ${seats})">
+              ${seats === 0 ? "Sold Out" : "Reserve Now"}
+            </button>
           `;
 
-          eventList.appendChild(eventEl);
-        }
-      });
+          if (showDate > now) eventList.appendChild(eventEl);
+        });
+      } catch (err) {
+        document.getElementById("event-list").innerText = "Failed to load events.";
+        console.error("Error loading events:", err);
+      }
     }
 
     async function bookTickets(date, time, title, seatsAvailable) {
@@ -62,15 +65,20 @@
 
       const payload = { date, time, title, tickets, name, phone, email };
 
-      const response = await fetch(scriptURL, {
-        method: "POST",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      try {
+        const response = await fetch(scriptURL, {
+          method: "POST",
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-      const result = await response.json();
-      alert(result.message);
-      fetchEvents();
+        const result = await response.json();
+        alert(result.message);
+        fetchEvents();
+      } catch (error) {
+        alert("Failed to submit reservation.");
+        console.error("Reservation error:", error);
+      }
     }
 
     fetchEvents();
