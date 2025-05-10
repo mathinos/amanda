@@ -21,7 +21,8 @@
     
 
     async function fetchEvents() {
-      const response = await fetch(`${scriptURL}?action=schedule`);
+      const response = await fetch(scriptURL);
+
       const events = await response.json();
 
       const now = new Date();
